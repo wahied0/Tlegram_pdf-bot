@@ -33,4 +33,4 @@ def check_password(message):
         else:
             bot.send_message(message.chat.id, "لا يوجد PDF لليوم 🤍")
     else:
-        bot.send_message(message.chat.id, "❌ ا_
+        bot.send_message(message.chat.id, "❌"
