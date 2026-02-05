@@ -1,28 +1,30 @@
-import telebot
-from datetime import datetime
 import os
+from flask import Flask, request
+import telebot
 
-TOKEN = os.getenv("oken")      # الاسم زي ما هو في GitHub Secret
-PASSWORD = os.getenv("PASSWORD")
-
-PDF_FOLDER = "pdfs"
+# Environment Variables
+TOKEN = os.getenv("oken")        # التوكن من BotFather
+PASSWORD = os.getenv("PASSWORD") # الباسورد الخاص بك
 
 bot = telebot.TeleBot(TOKEN)
-print("Bot started... waiting for messages")
+app = Flask(__name__)
 
+PDF_FOLDER = "pdfs"  # مجلد ملفات PDF
+
+# دالة لإرجاع PDF اليوم
 def get_today_pdf():
+    from datetime import datetime
     today = datetime.now().day
     file_name = f"day{today}.pdf"
     file_path = os.path.join(PDF_FOLDER, file_name)
-    if os.path.exists(file_path):
-        return file_path
-    else:
-        return None
+    return file_path if os.path.exists(file_path) else None
 
+# الرد على /start
 @bot.message_handler(commands=['start'])
 def start(message):
     bot.send_message(message.chat.id, "أهلاً 👋\nادخلي الباسورد يا هبتي 🔐")
 
+# التحقق من الباسورد
 @bot.message_handler(func=lambda m: True)
 def check_password(message):
     if message.text == PASSWORD:
@@ -33,4 +35,24 @@ def check_password(message):
         else:
             bot.send_message(message.chat.id, "لا يوجد PDF لليوم 🤍")
     else:
-       bot.send_message(message.chat.id, """❌ الباسورد غلط""")
+        bot.send_message(message.chat.id, "❌ الباسورد غلط")
+
+# Webhook endpoint
+@app.route(f"/{TOKEN}", methods=["POST"])
+def webhook():
+    json_str = request.get_data().decode("utf-8")
+    update = telebot.types.Update.de_json(json_str)
+    bot.process_new_updates([update])
+    return "!", 200
+
+# صفحة اختبار بسيطة
+@app.route("/")
+def index():
+    return "Bot is running!"
+
+# ضبط Webhook
+bot.remove_webhook()
+bot.set_webhook(url=f"https://YOUR_RAILWAY_URL/{TOKEN}")
+
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
