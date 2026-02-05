@@ -52,7 +52,7 @@ def index():
 
 # ضبط Webhook
 bot.remove_webhook()
-bot.set_webhook(url=f"https://YOUR_RAILWAY_URL/{TOKEN}")
+bot.set_webhook(url=f"https://mytelegrambot.up.railway.app/{TOKEN}")
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
